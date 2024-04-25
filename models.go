@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
 	// "os/exec"
 	// "strings"
 	"sync"
 
-	"github.com/ryankurte/go-mapbox/lib"
+	mapbox "github.com/ryankurte/go-mapbox/lib"
 	// "github.com/sjsafranek/goutils"
+	"github.com/ryankurte/go-mapbox/lib/maps"
 	"github.com/sjsafranek/goutils/shell"
 )
 
@@ -36,7 +38,21 @@ func (self *TerrainMap) SetZoom(zoom int) {
 	self.zoom = zoom
 }
 
-func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int, outFile string) {
+func ResolveMapType(mapType string) maps.MapID {
+	switch mapType {
+	case "satellite":
+		return maps.MapIDSatellite
+	case "terrain":
+		return maps.MapIDTerrainRGB
+	case "streets":
+		return maps.MapIDStreets
+	default:
+		panic(errors.New("Unsupported map type"))
+	}
+}
+
+func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int, outFile string, mapType string) {
+	mt := ResolveMapType(mapType)
 	tiles := GetTileNamesFromMapView(minLat, maxLat, minLng, maxLng, zoom)
 
 	log.Printf(`Parameters:
@@ -44,7 +60,7 @@ func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int,
 	zoom:	%v
 	tiles:	%v`, minLat, maxLat, minLng, maxLng, zoom, len(tiles))
 
-	if 100 < len(tiles) {
+	if 300 < len(tiles) {
 		panic(errors.New("Too many map tiles. Please raise map zoom or change bounds"))
 	}
 
@@ -61,7 +77,7 @@ func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int,
 
 	log.Println("Spawning workers")
 	for i := 0; i < numWorkers; i++ {
-		go terrainWorker(self.MapBox, queue, directory, &workwg)
+		go terrainWorker(self.MapBox, queue, directory, mt, &workwg)
 	}
 
 	log.Println("Requesting tiles")

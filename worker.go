@@ -6,17 +6,17 @@ import (
 	"log"
 	"sync"
 
-	"github.com/ryankurte/go-mapbox/lib"
+	mapbox "github.com/ryankurte/go-mapbox/lib"
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/maps"
 )
 
-func terrainWorker(mapBox *mapbox.Mapbox, queue chan xyz, directory string, workwg *sync.WaitGroup) {
+func terrainWorker(mapBox *mapbox.Mapbox, queue chan xyz, directory string, mapType maps.MapID, workwg *sync.WaitGroup) {
 	for xyz := range queue {
 		// fetch tile
 		highDPI := false
 		log.Println("Fetch tile", xyz)
-		tile, err := mapBox.Maps.GetTile(maps.MapIDSatellite, xyz.x, xyz.y, xyz.z, maps.MapFormatJpg90, highDPI)
+		tile, err := mapBox.Maps.GetTile(mapType, xyz.x, xyz.y, xyz.z, maps.MapFormatJpg90, highDPI)
 		if nil != err {
 			// panic(err)
 			log.Println(err)

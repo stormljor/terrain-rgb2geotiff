@@ -16,6 +16,8 @@ const (
 	DEFAULT_MAPBOX_TOKEN string = ""
 	// DEFAULT_ZOOM default map zoom level
 	DEFAULT_ZOOM int = -1
+	// DEFAULT_MAPS default map type
+	DEFAULT_MAPS string = "satellite"
 )
 
 var (
@@ -35,6 +37,8 @@ var (
 	ZOOM int = DEFAULT_ZOOM
 	// numWorkers number of workers
 	numWorkers int
+	// mapType map type
+	mapType string = DEFAULT_MAPS
 )
 
 func init() {
@@ -46,6 +50,7 @@ func init() {
 	flag.Float64Var(&MAX_LNG, "maxlng", 175, "max longitude")
 	flag.IntVar(&ZOOM, "zoom", DEFAULT_ZOOM, "zoom. This will be automatically calculated if not provided.")
 	flag.IntVar(&numWorkers, "w", runtime.NumCPU(), "Number of workers")
+	flag.StringVar(&mapType, "map", DEFAULT_MAPS, "Map type")
 	flag.Parse()
 
 	// Calculate zoom if not specified
@@ -71,6 +76,6 @@ func main() {
 	}
 
 	startTime := time.Now()
-	tmap.Render(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG, ZOOM, OUT_FILE)
+	tmap.Render(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG, ZOOM, OUT_FILE, mapType)
 	log.Println("Runtime:", time.Since(startTime))
 }
