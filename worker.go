@@ -16,7 +16,7 @@ func terrainWorker(mapBox *mapbox.Mapbox, queue chan xyz, directory string, work
 		// fetch tile
 		highDPI := false
 		log.Println("Fetch tile", xyz)
-		tile, err := mapBox.Maps.GetTile(maps.MapIDTerrainRGB, xyz.x, xyz.y, xyz.z, maps.MapFormatPngRaw, highDPI)
+		tile, err := mapBox.Maps.GetTile(maps.MapIDSatellite, xyz.x, xyz.y, xyz.z, maps.MapFormatJpg90, highDPI)
 		if nil != err {
 			// panic(err)
 			log.Println(err)
