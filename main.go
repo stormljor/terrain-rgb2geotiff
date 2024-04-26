@@ -54,24 +54,24 @@ func init() {
 	flag.Parse()
 
 	// Calculate zoom if not specified
-	if -1 == ZOOM {
-		panic(errors.New("Must supply a map zoom"))
+	if ZOOM == -1 {
+		panic(errors.New("must supply a map zoom"))
 	}
 }
 
 func main() {
 	// If MAPBOX_TOKEN is not defined get from os environmental variables
-	if "" == MAPBOX_TOKEN {
+	if MAPBOX_TOKEN == "" {
 		MAPBOX_TOKEN = os.Getenv("MAPBOX_TOKEN")
 	}
 
-	if "" == MAPBOX_TOKEN {
-		panic(errors.New("Must supply a MAPBOX_TOKEN"))
+	if MAPBOX_TOKEN == "" {
+		panic(errors.New("must supply a MAPBOX_TOKEN"))
 	}
 
 	//
 	tmap, err := NewTerrainMap(MAPBOX_TOKEN)
-	if nil != err {
+	if err != nil {
 		panic(err)
 	}
 

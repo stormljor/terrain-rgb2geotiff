@@ -3,16 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
-	// "os/exec"
-	// "strings"
 	"sync"
 
 	mapbox "github.com/ryankurte/go-mapbox/lib"
-	// "github.com/sjsafranek/goutils"
 	"github.com/ryankurte/go-mapbox/lib/maps"
 	"github.com/sjsafranek/goutils/shell"
 )
@@ -34,8 +30,8 @@ type TerrainMap struct {
 	zoom   int
 }
 
-func (self *TerrainMap) SetZoom(zoom int) {
-	self.zoom = zoom
+func (tm *TerrainMap) SetZoom(zoom int) {
+	tm.zoom = zoom
 }
 
 func ResolveMapType(mapType string) maps.MapID {
@@ -51,7 +47,7 @@ func ResolveMapType(mapType string) maps.MapID {
 	}
 }
 
-func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int, outFile string, mapType string) {
+func (tm *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int, outFile string, mapType string) {
 	mt := ResolveMapType(mapType)
 	tiles := GetTileNamesFromMapView(minLat, maxLat, minLng, maxLng, zoom)
 
@@ -61,11 +57,11 @@ func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int,
 	tiles:	%v`, minLat, maxLat, minLng, maxLng, zoom, len(tiles))
 
 	if 300 < len(tiles) {
-		panic(errors.New("Too many map tiles. Please raise map zoom or change bounds"))
+		panic(errors.New("too many map tiles. Please raise map zoom or change bounds"))
 	}
 
 	// create temp directroy
-	directory, err := ioutil.TempDir(os.TempDir(), "terrain-rgb")
+	directory, err := os.MkdirTemp(os.TempDir(), "terrain-rgb")
 	if nil != err {
 		panic(err)
 	}
@@ -77,7 +73,7 @@ func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int,
 
 	log.Println("Spawning workers")
 	for i := 0; i < numWorkers; i++ {
-		go terrainWorker(self.MapBox, queue, directory, mt, &workwg)
+		go terrainWorker(tm.MapBox, queue, directory, mt, &workwg)
 	}
 
 	log.Println("Requesting tiles")
@@ -91,13 +87,13 @@ func (self *TerrainMap) Render(minLat, maxLat, minLng, maxLng float64, zoom int,
 	workwg.Wait()
 
 	log.Println("Building GeoTIFF")
-	err = self.buildGeoTIFF(directory, outFile)
+	err = tm.buildGeoTIFF(directory, outFile)
 	if nil != err {
 		log.Fatal(err)
 	}
 }
 
-func (self TerrainMap) buildGeoTIFF(directory, outFile string) error {
+func (tm TerrainMap) buildGeoTIFF(directory, outFile string) error {
 	// bash script contents
 	script := `
 #!/bin/bash
@@ -126,11 +122,11 @@ gdalwarp --config GDAL_CACHEMAX 3000 -wm 3000 $DIRECTORY/*.tif $OUT_FILE
 	`
 
 	// write to bash script
-	fh, err := ioutil.TempFile("", "build_geotiff.*.sh")
+	fh, err := os.CreateTemp("", "build_geotiff.*.sh")
 	if nil != err {
 		return err
 	}
-	fmt.Fprintf(fh, script)
+	fmt.Fprint(fh, script)
 	fh.Close()
 	defer os.Remove(fh.Name())
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"sync"
 
 	mapbox "github.com/ryankurte/go-mapbox/lib"
@@ -33,7 +33,7 @@ func terrainWorker(mapBox *mapbox.Mapbox, queue chan xyz, directory string, mapT
 
 		// create temp file
 		basename := fmt.Sprintf("%v_%v_%v_*.csv", xyz.x, xyz.y, xyz.z)
-		fileHandler, err := ioutil.TempFile(directory, basename)
+		fileHandler, err := os.CreateTemp(directory, basename)
 		if nil != err {
 			panic(err)
 		}
